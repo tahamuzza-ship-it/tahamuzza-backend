@@ -147,13 +147,11 @@ app.get("/api/health", (req, res) => {
 });
 
 // ===== INICIALIZAR Y ARRANCAR SERVIDOR =====
-initializeDatabase()
-  .then(() => {
-    app.listen(PORT, () => {
-      console.log(`🚀 Servidor corriendo en puerto ${PORT}`);
-    });
-  })
-  .catch((err) => {
-    console.error("❌ No se pudo iniciar el servidor:", err);
-    process.exit(1);
+app.listen(PORT, () => {
+  console.log(`🚀 Servidor iniciado en puerto ${PORT}`);
+  // Iniciar la conexión a la base de datos sin bloquear el arranque
+  initializeDatabase().catch((err) => {
+    console.error("❌ Error al inicializar la base de datos:", err);
   });
+});
+
