@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TAHAMUZZA - Portal Seguro con 2FA</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+            min-height: 100vh;
+            color: #e2e8f0;
+            line-height: 1.6;
+        }
+
+        .login-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .login-box {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(6, 182, 212, 0.3);
+            border-radius: 12px;
+            padding: 40px;
+            width: 100%;
+            max-width: 400px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .logo-icon {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 16px;
+            color: #06b6d4;
+        }
+
+        .login-title {
+            font-size: 28px;
+            font-weight: 700;
+            background: linear-gradient(90deg, #67e8f9 0%, #06b6d4 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 8px;
+        }
+
+        .login-subtitle {
+            font-size: 14px;
+            color: #94a3b8;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #cbd5e1;
+            margin-bottom: 8px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(15, 23, 42, 0.5);
+            border: 1px solid rgba(6, 182, 212, 0.2);
+            border-radius: 6px;
+            color: #e2e8f0;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #06b6d4;
+            background: rgba(15, 23, 42, 0.8);
+            box-shadow: 0 0 12px rgba(6, 182, 212, 0.2);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px 16px;
+            background: linear-gradient(90deg, #06b6d4 0%, #0891b2 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 16px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px rgba(6, 182, 212, 0.3);
+        }
+
+        .security-badge {
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            border-radius: 6px;
+            padding: 12px;
+            margin-top: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #86efac;
+        }
+
+        .error-message {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 16px;
+            color: #fca5a5;
+            font-size: 13px;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .dashboard {
+            display: none;
+            min-height: 100vh;
+        }
+
+        .dashboard.active {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: rgba(30, 41, 59, 0.9);
+            border-bottom: 1px solid rgba(6, 182, 212, 0.2);
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-title {
+            font-size: 24px;
+            font-weight: 700;
+            background: linear-gradient(90deg, #67e8f9 0%, #06b6d4 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .user-badge {
+            background: rgba(6, 182, 212, 0.1);
+            border: 1px solid rgba(6, 182, 212, 0.3);
+            border-radius: 6px;
+            padding: 8px 12px;
+            font-size: 12px;
+            color: #67e8f9;
+        }
+
+        .logout-btn {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #fca5a5;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.3s ease;
+        }
+
+        .logout-btn:hover {
+            background: rgba(239, 68, 68, 0.2);
+        }
+
+        .content {
+            flex: 1;
+            padding: 40px 20px;
+            max-width: 1280px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 32px;
+            border-bottom: 1px solid rgba(6, 182, 212, 0.2);
+        }
+
+        .tab {
+            padding: 12px 20px;
+            background: transparent;
+            border: none;
+            color: #cbd5e1;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .tab.active {
+            color: #06b6d4;
+            border-bottom-color: #06b6d4;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .card {
+            background: rgba(30, 41, 59, 0.5);
+            border: 1px solid rgba(6, 182, 212, 0.2);
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #67e8f9;
+            margin-bottom: 16px;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(6, 182, 212, 0.1);
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            color: #94a3b8;
+            font-weight: 500;
+        }
+
+        .info-value {
+            color: #67e8f9;
+            font-weight: 600;
+        }
+
+        .users-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .users-table th {
+            background: rgba(6, 182, 212, 0.1);
+            border: 1px solid rgba(6, 182, 212, 0.2);
+            padding: 12px;
+            text-align: left;
+            color: #67e8f9;
+            font-weight: 600;
+        }
+
+        .users-table td {
+            border: 1px solid rgba(6, 182, 212, 0.2);
+            padding: 12px;
+            color: #cbd5e1;
+        }
+
+        .users-table tr:hover {
+            background: rgba(6, 182, 212, 0.05);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .badge-admin {
+            background: rgba(220, 38, 38, 0.2);
+            color: #fca5a5;
+        }
+
+        .badge-user {
+            background: rgba(6, 182, 212, 0.2);
+            color: #67e8f9;
+        }
+
+        .badge-enabled {
+            background: rgba(34, 197, 94, 0.2);
+            color: #86efac;
+        }
+
+        .badge-disabled {
+            background: rgba(107, 114, 128, 0.2);
+            color: #d1d5db;
+        }
+
+        .verify-2fa-container {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .verify-2fa-container.active {
+            display: flex;
+        }
+
+        .verify-2fa-box {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(6, 182, 212, 0.3);
+            border-radius: 12px;
+            padding: 40px;
+            width: 100%;
+            max-width: 400px;
+            backdrop-filter: blur(10px);
+        }
+
+        .verify-2fa-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #67e8f9;
+            margin-bottom: 12px;
+            text-align: center;
+        }
+
+        .verify-2fa-subtitle {
+            font-size: 13px;
+            color: #94a3b8;
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .code-input {
+            font-size: 32px;
+            letter-spacing: 8px;
+            text-align: center;
+            font-weight: 600;
+            font-family: monospace;
+        }
+
+        @media (max-width: 768px) {
+            .login-box, .verify-2fa-box {
+                padding: 24px;
+            }
+
+            .header {
+                flex-direction: column;
+                gap: 16px;
+            }
+
+            .tabs {
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- LOGIN PAGE -->
+    <div class="login-container" id="loginPage">
+        <div class="login-box">
+            <div class="login-header">
+                <svg class="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                </svg>
+                <h1 class="login-title">TAHAMUZZA</h1>
+                <p class="login-subtitle">Portal Seguro con 2FA</p>
+            </div>
+
+            <div class="error-message" id="loginError"></div>
+
+            <form id="loginForm">
+                <div class="form-group">
+                    <label class="form-label">Usuario</label>
+                    <input type="text" class="form-input" id="username" placeholder="admin" value="admin">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Contraseña</label>
+                    <input type="password" class="form-input" id="password" placeholder="••••••••" value="admin123">
+                </div>
+
+                <button type="submit" class="btn">Conectar</button>
+            </form>
+
+            <div class="security-badge">
+                🔒 Encriptado • 2FA Habilitado • Conexión Segura
+            </div>
+        </div>
+    </div>
+
+    <!-- 2FA VERIFICATION PAGE -->
+    <div class="verify-2fa-container" id="verify2FAPage">
+        <div class="verify-2fa-box">
+            <h2 class="verify-2fa-title">Verificación 2FA</h2>
+            <p class="verify-2fa-subtitle">Ingresa el código de 6 dígitos de tu autenticador</p>
+
+            <div class="error-message" id="verify2FAError"></div>
+
+            <form id="verify2FAForm">
+                <div class="form-group">
+                    <input type="text" class="form-input code-input" id="twoFACode" placeholder="000000" maxlength="6" pattern="[0-9]{6}">
+                </div>
+
+                <button type="submit" class="btn">Verificar</button>
+            </form>
+
+            <div style="text-align: center; margin-top: 20px;">
+                <button type="button" class="logout-btn" onclick="logout()">Volver</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div class="dashboard" id="dashboard">
+        <div class="header">
+            <h1 class="header-title">TAHAMUZZA Dashboard</h1>
+            <div class="user-info">
+                <div class="user-badge" id="userBadge">Usuario</div>
+                <button class="logout-btn" onclick="logout()">Salir</button>
+            </div>
+        </div>
+
+        <div class="content">
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab('clients')">CLIENTES</button>
+                <button class="tab" onclick="switchTab('admin')" id="adminTab" style="display: none;">ADMINISTRACION</button>
+            </div>
+
+            <!-- CLIENTS TAB -->
+            <div class="tab-content active" id="clients">
+                <div class="card">
+                    <h3 class="card-title">📊 Mi Información</h3>
+                    <div class="info-row">
+                        <span class="info-label">Usuario:</span>
+                        <span class="info-value" id="userUsername">-</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Email:</span>
+                        <span class="info-value" id="userEmail">-</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Nombre:</span>
+                        <span class="info-value" id="userName">-</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Rol:</span>
+                        <span class="info-value" id="userRole">-</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">2FA Habilitado:</span>
+                        <span class="info-value" id="user2FAStatus">-</span>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3 class="card-title">🔐 Estado de Seguridad</h3>
+                    <div class="info-row">
+                        <span class="info-label">Autenticación:</span>
+                        <span class="info-value">✓ JWT + HTTP-only</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Encriptación:</span>
+                        <span class="info-value">✓ Bcryptjs</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">2FA:</span>
+                        <span class="info-value">✓ TOTP</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Sesión:</span>
+                        <span class="info-value">✓ Activa</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ADMIN TAB -->
+            <div class="tab-content" id="admin">
+                <div class="card">
+                    <h3 class="card-title">👥 Gestión de Usuarios</h3>
+                    <table class="users-table" id="usersTable">
+                        <thead>
+                            <tr>
+                                <th>Usuario</th>
+                                <th>Email</th>
+                                <th>Nombre</th>
+                                <th>Rol</th>
+                                <th>2FA</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTableBody">
+                            <tr>
+                                <td colspan="5" style="text-align: center; color: #94a3b8;">Cargando usuarios...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:3000/api';
+        let currentUser = null;
+        let sessionToken = null;
+
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const errorDiv = document.getElementById('loginError');
+
+            try {
+                errorDiv.classList.remove('show');
+                const response = await fetch(`${API_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.message || 'Error en login');
+                }
+
+                if (data.requiresTwoFA) {
+                    sessionToken = data.sessionToken;
+                    document.getElementById('loginPage').style.display = 'none';
+                    document.getElementById('verify2FAPage').classList.add('active');
+                    document.getElementById('twoFACode').focus();
+                } else {
+                    currentUser = data.user;
+                    loadDashboard();
+                }
+            } catch (error) {
+                errorDiv.textContent = error.message;
+                errorDiv.classList.add('show');
+            }
+        });
+
+        document.getElementById('verify2FAForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const token = document.getElementById('twoFACode').value;
+            const errorDiv = document.getElementById('verify2FAError');
+
+            try {
+                errorDiv.classList.remove('show');
+                const response = await fetch(`${API_URL}/auth/verify-2fa`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ sessionToken, token })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.message || 'Código inválido');
+                }
+
+                currentUser = data.user;
+                document.getElementById('verify2FAPage').classList.remove('active');
+                loadDashboard();
+            } catch (error) {
+                errorDiv.textContent = error.message;
+                errorDiv.classList.add('show');
+            }
+        });
+
+        function loadDashboard() {
+            document.getElementById('loginPage').style.display = 'none';
+            document.getElementById('verify2FAPage').classList.remove('active');
+            document.getElementById('dashboard').classList.add('active');
+
+            document.getElementById('userUsername').textContent = currentUser.username;
+            document.getElementById('userEmail').textContent = currentUser.email || '-';
+            document.getElementById('userName').textContent = currentUser.name || '-';
+            document.getElementById('userRole').textContent = currentUser.role === 'admin' ? 'Administrador' : 'Usuario';
+            document.getElementById('user2FAStatus').textContent = currentUser.twoFAEnabled ? '✓ Habilitado' : '✗ Deshabilitado';
+            document.getElementById('userBadge').textContent = `${currentUser.name || currentUser.username} (${currentUser.role})`;
+
+            if (currentUser.role === 'admin') {
+                document.getElementById('adminTab').style.display = 'block';
+                loadUsers();
+            }
+        }
+
+        async function loadUsers() {
+            try {
+                const response = await fetch(`${API_URL}/users`, {
+                    credentials: 'include'
+                });
+
+                const users = await response.json();
+                const tbody = document.getElementById('usersTableBody');
+                tbody.innerHTML = '';
+
+                users.forEach(user => {
+                    const row = tbody.insertRow();
+                    row.innerHTML = `
+                        <td>${user.username}</td>
+                        <td>${user.email || '-'}</td>
+                        <td>${user.name || '-'}</td>
+                        <td><span class="badge ${user.role === 'admin' ? 'badge-admin' : 'badge-user'}">${user.role}</span></td>
+                        <td><span class="badge ${user.twoFAEnabled ? 'badge-enabled' : 'badge-disabled'}">${user.twoFAEnabled ? 'Sí' : 'No'}</span></td>
+                    `;
+                });
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+        }
+
+        function logout() {
+            currentUser = null;
+            sessionToken = null;
+            document.getElementById('loginForm').reset();
+            document.getElementById('verify2FAForm').reset();
+            document.getElementById('dashboard').classList.remove('active');
+            document.getElementById('verify2FAPage').classList.remove('active');
+            document.getElementById('loginPage').style.display = 'flex';
+            document.getElementById('username').focus();
+        }
+
+        window.addEventListener('load', () => {
+            document.getElementById('username').focus();
+        });
+    </script>
+</body>
+</html>
