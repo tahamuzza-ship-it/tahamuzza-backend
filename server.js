@@ -18,10 +18,12 @@ import speakeasy from "speakeasy";
 import QRCode from "qrcode";
 import cookieParser from "cookie-parser";
 import path from "path";
+import dotenv from "dotenv";
 import pkg from "pg";
 const { Pool } = pkg;
 
 // ===== CONFIGURACIÓN =====
+dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || "tu_clave_secreta_cambiar_en_produccion";
@@ -29,15 +31,15 @@ const JWT_EXPIRE = "7d";
 const DATABASE_URL = process.env.DATABASE_URL;
 
 if (!DATABASE_URL) {
-  console.error("FATAL: La variable de entorno DATABASE_URL no está configurada. Necesaria para Railway.");
+  console.error("❌ FATAL: La variable DATABASE_URL no está configurada. Necesaria para Railway.");
   process.exit(1);
 }
 
 // ===== MIDDLEWARE =====
 app.use(express.json());
-app.use(express.static(path.resolve()));
 app.use(cookieParser());
 app.use(cors({ origin: "*", credentials: true }));
+app.use(express.static(path.resolve("public")));
 
 // ===== BASE DE DATOS (PostgreSQL) =====
 const pool = new Pool({
@@ -48,7 +50,7 @@ const pool = new Pool({
 async function initializeDatabase() {
   try {
     await pool.query("SELECT 1");
-    console.log("[DB] Conectado a PostgreSQL");
+    console.log("[DB] ✅ Conectado a PostgreSQL");
 
     await pool.query(`
       CREATE TABLE IF NOT EXISTS users (
@@ -76,14 +78,12 @@ async function initializeDatabase() {
       )
     `);
 
-    console.log("[DB] Tablas inicializadas");
+    console.log("[DB] 🧱 Tablas inicializadas correctamente");
   } catch (err) {
-    console.error("[DB] Error al conectar o inicializar la base de datos:", err);
-    process.exit(1);
+    console.error("[DB] ❌ Error al conectar o inicializar la base de datos:", err);
+    throw err; // Lanzamos para manejar el error arriba
   }
 }
-
-initializeDatabase();
 
 // ===== UTILIDADES =====
 async function dbGet(sql, params) {
@@ -146,7 +146,14 @@ app.get("/api/health", (req, res) => {
   res.json({ status: "OK", service: "TAHAMUZZA Backend activo", time: new Date().toISOString() });
 });
 
-// ===== SERVIDOR =====
-app.listen(PORT, () => {
-  console.log(`🚀 Servidor corriendo en puerto ${PORT}`);
-});
+// ===== INICIALIZAR Y ARRANCAR SERVIDOR =====
+initializeDatabase()
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`🚀 Servidor corriendo en puerto ${PORT}`);
+    });
+  })
+  .catch((err) => {
+    console.error("❌ No se pudo iniciar el servidor:", err);
+    process.exit(1);
+  });
